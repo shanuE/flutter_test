@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-import 'dart:ui';
 import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +9,9 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         slivers: [
           const _SettingsNavigationBar(),
           SliverToBoxAdapter(
@@ -62,7 +63,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  /// Shows a modal popup for terms and conditions
   static void _showTermsSheet(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
@@ -95,10 +95,6 @@ Thank you for using our app.
   }
 }
 
-// -------------------------
-// COMPONENTS BELOW
-// -------------------------
-
 class _SettingsNavigationBar extends StatelessWidget {
   const _SettingsNavigationBar();
 
@@ -107,15 +103,17 @@ class _SettingsNavigationBar extends StatelessWidget {
     return CupertinoSliverNavigationBar(
       largeTitle: const Text('Settings'),
       stretch: true,
-      transitionBetweenRoutes: false,
       backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
       trailing: const Icon(CupertinoIcons.gear),
-      // Search field that scrolls away
+      border: null,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: CupertinoSearchTextField(),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: CupertinoSearchTextField(
+            placeholder: 'Search settings',
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
         ),
       ),
     );
@@ -169,55 +167,41 @@ class _SettingsItem extends StatelessWidget {
   }
 }
 
-
-
-class ProfileCard extends StatefulWidget {
+class ProfileCard extends StatelessWidget {
   const ProfileCard({super.key});
-
-  @override
-  State<ProfileCard> createState() => _ProfileCardState();
-}
-
-class _ProfileCardState extends State<ProfileCard> {
-  ui.FragmentShader? _shader;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadShader();
-  }
-
-  Future<void> _loadShader() async {
-    final program = await ui.FragmentProgram.fromAsset('assets/shaders/invert.frag');
-    setState(() {
-      _shader = program.fragmentShader();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: Material(
+        elevation: 2,
+        borderRadius: BorderRadius.circular(12),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: _shader == null
-              ? const SizedBox(height: 200) // Loading fallback
-              : BackdropFilter(
-            filter: ui.ImageFilter.shader(_shader!),
-            child: Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.indigo.shade300, Colors.purple.shade300],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.indigo.shade300, Colors.purple.shade300],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              alignment: Alignment.center,
-              child: const Text(
-                'Profile Card',
-                style: TextStyle(fontSize: 20, color: Colors.white),
+            ),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(
+                sigmaX: 2.0,
+                sigmaY: 2.0,
+              ),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                ),
+                child: const Text(
+                  'Profile Card',
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
               ),
             ),
           ),
@@ -226,4 +210,3 @@ class _ProfileCardState extends State<ProfileCard> {
     );
   }
 }
-
